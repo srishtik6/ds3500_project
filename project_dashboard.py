@@ -61,7 +61,7 @@ app.layout = dbc.Container([
             html.H2("Dashboard for the Evolution of Poetry",
                     style={"font-weight": "bold", "textAlign": "center"}),
             html.P("ㅤ")
-        ], width=8)
+        ])
     ], justify="center"),
 
     dbc.Row([
@@ -69,12 +69,12 @@ app.layout = dbc.Container([
             html.H4("Top n Common Words for Each Century",
                     style={"textAlign": "center"}),
             dcc.Graph(id="sankey1")
-        ], width=6),
+        ]),
         dbc.Col([
             html.H4("Top n Common Words for Specified Author",
                     style={"textAlign": "center"}),
             dcc.Graph(id="sankey2")
-        ], width=6)
+        ])
     ]),
 
     dbc.Row([
@@ -82,7 +82,7 @@ app.layout = dbc.Container([
             html.P("Select the number of top most common words for each century:",
                    style={"font-family": "cursive"}),
             dcc.Slider(id="most_common", min=1, max=10, step=1, value=3)
-        ], width=6),
+        ]),
         dbc.Col([
             html.P("Select Author:", style={"font-family": "cursive"}),
             dcc.Dropdown(id="author_name", options=word_df['author'].unique(), value='Thomas Dunn English (1819-1902)'),
@@ -90,9 +90,9 @@ app.layout = dbc.Container([
             html.P("Select the number of top most common words for the author:",
                    style={"font-family": "cursive"}),
             dcc.Slider(id="author_wc", min=1, max=10, step=1, value=5)
-        ], width=6)
+        ])
     ])
-])
+], fluid=True)
 
 
 @app.callback(
