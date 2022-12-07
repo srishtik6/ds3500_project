@@ -1,15 +1,12 @@
 import pandas as pd
 import project_sankey as proj_sk
-import wordcloud_code as flower
+import sentiment as flower
 from dash import Dash, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 import re
 
-# tabs for dashboard
-# annotations for graphs
-# report left + peer eval
+word_df = pd.read_csv("poem_word_final.csv")
 
-word_df = pd.read_csv("poem_word.csv")
 # possible emotions from pyplutchik's library
 emotions = ['anger', 'anticipation', 'disgust', 'fear', 'joy', 'sadness', 'surprise', 'trust']
 
@@ -18,7 +15,7 @@ def read_poems():
     :return: convert a csv to a dataframe and change values in the century column
              Ex. 1900 --> 19th Century
     """
-    century_df = pd.read_csv("century_count.csv")
+    century_df = pd.read_csv("century_count_final.csv")
 
     for century in century_df['century']:
         century_df['century'] = century_df['century'].replace(century, f'{str(century)[:-2]}th Century')
@@ -128,7 +125,11 @@ app.layout = dbc.Container([
         dbc.Col([
             html.H4("Emotion over Time",
                     style={"textAlign": "center"}),
-            dcc.Graph(id="line1")
+            html.P("We recommend zooming into 1700-1900s for greater detail!",
+                    style={"textAlign": "center"}),
+            dcc.Graph(id="line1"),
+            html.P("Note: Age of Revolution= Wave of revolutions for indepedence in EU",
+                   style={"font-family": "cursive"})
         ])
     ]),
     dbc.Row([
@@ -138,7 +139,6 @@ app.layout = dbc.Container([
             dcc.Dropdown(id="emotion", options=emotions, value='joy')
         ])
     ]),
-
 
 ], fluid=True)
 
@@ -165,12 +165,13 @@ def update_graphs(most_common, author_name, author_wc, category1, category2, emo
     local2 = trim_word(word_df, author_name, author_wc)
     fig2 = proj_sk.make_sankey(local2, 'word', 'author', 'count', pad=50, thickness=40, line_width=1, opacity=0.6)
 
+    # flower diagrams
     fig3 = flower.make_flower(word_df, category1)
     fig4 = flower.make_flower(word_df, category2)
 
+    # line graph
     fig5 = flower.make_line(word_df, emotion)
 
     return fig1, fig2, fig3, fig4, fig5
-
 
 app.run_server(debug=False)
