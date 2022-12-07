@@ -1,9 +1,17 @@
 import pandas as pd
 import project_sankey as proj_sk
+import wordcloud_code as flower
 from dash import Dash, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 import re
 
+# tabs for dashboard
+# annotations for graphs
+# report left + peer eval
+
+word_df = pd.read_csv("poem_word.csv")
+# possible emotions from pyplutchik's library
+emotions = ['anger', 'anticipation', 'disgust', 'fear', 'joy', 'sadness', 'surprise', 'trust']
 
 def read_poems():
     """
@@ -15,7 +23,6 @@ def read_poems():
     for century in century_df['century']:
         century_df['century'] = century_df['century'].replace(century, f'{str(century)[:-2]}th Century')
 
-    word_df = pd.read_csv("poem_word.csv")
     # substitute certain values such as \r with ' '
     word_df['author'] = word_df['author'].apply(lambda x: re.sub('\s+', ' ', x))
 
@@ -60,6 +67,8 @@ app.layout = dbc.Container([
         dbc.Col([
             html.H2("Dashboard for the Evolution of Poetry",
                     style={"font-weight": "bold", "textAlign": "center"}),
+            html.H4("Aanay Anandpara, Srishti Kundu, David Shaknovich, Teera Tesharojanasup",
+                    style={"textAlign": "center"}),
             html.P("ㅤ")
         ])
     ], justify="center"),
@@ -89,21 +98,65 @@ app.layout = dbc.Container([
             html.P("ㅤ"),
             html.P("Select the number of top most common words for the author:",
                    style={"font-family": "cursive"}),
-            dcc.Slider(id="author_wc", min=1, max=10, step=1, value=5)
+            dcc.Slider(id="author_wc", min=1, max=10, step=1, value=5),
+            html.P("ㅤ")
         ])
-    ])
-], fluid=True)
+    ]),
+    dbc.Row([
+        html.H4("Sentiment Analysis: Flower Diagram",
+                    style={"textAlign": "center"})]),
 
+    dbc.Row([
+        dbc.Col(html.Div(html.Img(id='flower1')), width=6),
+        dbc.Col(html.Div(html.Img(id='flower2')), width=3)
+    ]),
+
+    dbc.Row([
+        dbc.Col([
+            html.P("Select 1st Genre:",
+                   style={"font-family": "cursive"}),
+            dcc.Dropdown(id="category1", options=word_df['category'].unique(), value='Historical Poems')
+        ]),
+        dbc.Col([
+            html.P("Select 2nd Genre:",
+                   style={"font-family": "cursive"}),
+            dcc.Dropdown(id="category2", options=word_df['category'].unique(), value='Historical Poems'),
+            html.P("ㅤ")
+        ])
+        ]),
+    dbc.Row([
+        dbc.Col([
+            html.H4("Emotion over Time",
+                    style={"textAlign": "center"}),
+            dcc.Graph(id="line1")
+        ])
+    ]),
+    dbc.Row([
+        dbc.Col([
+            html.P("Select Emotion:",
+                   style={"font-family": "cursive"}),
+            dcc.Dropdown(id="emotion", options=emotions, value='joy')
+        ])
+    ]),
+
+
+], fluid=True)
 
 @app.callback(
     Output("sankey1", "figure"),
     Output("sankey2", "figure"),
+    Output("flower1", "src"),
+    Output("flower2", "src"),
+    Output("line1", "figure"),
     Input("most_common", "value"),
     Input("author_name", "value"),
-    Input("author_wc", "value")
-)
-def update_graphs(most_common, author_name, author_wc):
+    Input("author_wc", "value"),
+    Input("category1", "value"),
+    Input("category2", "value"),
+    Input("emotion", "value"),
+    )
 
+def update_graphs(most_common, author_name, author_wc, category1, category2, emotion):
     # sankey diagram 1
     local1 = trim_count_df(century_df, 'century', most_common)
     fig1 = proj_sk.make_sankey(local1, 'century', 'word', 'count', pad=50, thickness=40, line_width=1, opacity=0.6)
@@ -112,7 +165,12 @@ def update_graphs(most_common, author_name, author_wc):
     local2 = trim_word(word_df, author_name, author_wc)
     fig2 = proj_sk.make_sankey(local2, 'word', 'author', 'count', pad=50, thickness=40, line_width=1, opacity=0.6)
 
-    return fig1, fig2
+    fig3 = flower.make_flower(word_df, category1)
+    fig4 = flower.make_flower(word_df, category2)
+
+    fig5 = flower.make_line(word_df, emotion)
+
+    return fig1, fig2, fig3, fig4, fig5
 
 
-app.run_server(debug=True)
+app.run_server(debug=False)
