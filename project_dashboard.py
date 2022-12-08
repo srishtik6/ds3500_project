@@ -75,12 +75,12 @@ app.layout = dbc.Container([
             html.H4("Top n Common Words for Each Century",
                     style={"textAlign": "center"}),
             dcc.Graph(id="sankey1")
-        ]),
+        ], width = 6),
         dbc.Col([
             html.H4("Top n Common Words for Specified Author",
                     style={"textAlign": "center"}),
             dcc.Graph(id="sankey2")
-        ])
+        ], width = 6)
     ]),
 
     dbc.Row([
